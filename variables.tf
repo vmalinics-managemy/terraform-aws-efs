@@ -49,6 +49,7 @@ variable "tags" {
 variable "security_groups" {
   type        = list(string)
   description = "Security group IDs to allow access to the EFS"
+  default     = []
 }
 
 variable "vpc_id" {
