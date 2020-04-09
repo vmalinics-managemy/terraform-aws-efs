@@ -37,11 +37,11 @@ resource "aws_efs_mount_target" "default" {
   file_system_id  = join("", aws_efs_file_system.default.*.id)
   ip_address      = var.mount_target_ip_address
   subnet_id       = var.subnets[count.index]
-  security_groups = [join("", aws_security_group.efs.*.id)]
+  security_groups = length(var.security_groups) > 0 ? var.security_groups : [join("", aws_security_group.efs.*.id)]
 }
 
 resource "aws_security_group" "efs" {
-  count       = var.enabled ? 1 : 0
+  count       = var.enabled && length(var.security_groups) == 0 ? 1 : 0
   name        = format("%s-efs", module.label.id)
   description = "EFS Security Group"
   vpc_id      = var.vpc_id
@@ -54,7 +54,7 @@ resource "aws_security_group" "efs" {
 }
 
 resource "aws_security_group_rule" "ingress" {
-  count                    = var.enabled ? length(var.security_groups) : 0
+  count                    = var.enabled && length(var.security_groups) == 0 ? length(var.security_groups) : 0
   type                     = "ingress"
   from_port                = "2049" # NFS
   to_port                  = "2049"
@@ -64,11 +64,11 @@ resource "aws_security_group_rule" "ingress" {
 }
 
 resource "aws_security_group_rule" "egress" {
-  count             = var.enabled ? 1 : 0
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
+  count             = var.enabled && length(var.security_groups) == 0 ? 1 : 0
+  type              = "ingress"
+  from_port         = 2049
+  to_port           = 2049
+  protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = join("", aws_security_group.efs.*.id)
 }
