@@ -64,10 +64,10 @@ resource "aws_security_group_rule" "ingress" {
 
 resource "aws_security_group_rule" "egress" {
   count             = var.enabled && length(var.security_groups) == 0 ? 1 : 0
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
+  type              = "ingress"
+  from_port         = 2049
+  to_port           = 2049
+  protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = join("", aws_security_group.efs.*.id)
 }
